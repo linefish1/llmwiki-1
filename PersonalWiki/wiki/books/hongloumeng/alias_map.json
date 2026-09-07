@@ -1,0 +1,192 @@
+{
+  "entity_mappings": [
+    {
+      "canonical_name": "贾宝玉",
+      "aliases": [
+        "宝哥哥",
+        "宝玉",
+        "富贵闲人",
+        "怡红公子",
+        "混世魔王",
+        "神瑛侍者",
+        "绛珠仙草之伴"
+      ],
+      "type": "Person"
+    },
+    {
+      "canonical_name": "林黛玉",
+      "aliases": [
+        "林妹妹",
+        "林姑娘",
+        "潇湘妃子",
+        "绛珠仙草",
+        "颦儿",
+        "颦颦",
+        "黛玉"
+      ],
+      "type": "Person"
+    },
+    {
+      "canonical_name": "薛宝钗",
+      "aliases": [
+        "宝钗",
+        "宝姐姐",
+        "蘅芜君",
+        "冷美人"
+      ],
+      "type": "Person"
+    },
+    {
+      "canonical_name": "王熙凤",
+      "aliases": [
+        "凤姐",
+        "凤丫头",
+        "凤辣子",
+        "琏二奶奶"
+      ],
+      "type": "Person"
+    },
+    {
+      "canonical_name": "贾母",
+      "aliases": [
+        "史太君",
+        "老太太",
+        "老祖宗"
+      ],
+      "type": "Person"
+    },
+    {
+      "canonical_name": "贾政",
+      "aliases": [
+        "存周",
+        "政老爹",
+        "政老爷"
+      ],
+      "type": "Person"
+    },
+    {
+      "canonical_name": "王夫人",
+      "aliases": [
+        "二太太",
+        "太太"
+      ],
+      "type": "Person"
+    },
+    {
+      "canonical_name": "贾琏",
+      "aliases": [
+        "琏二爷",
+        "琏哥儿"
+      ],
+      "type": "Person"
+    },
+    {
+      "canonical_name": "秦可卿",
+      "aliases": [
+        "兼美",
+        "秦氏",
+        "蓉大奶奶"
+      ],
+      "type": "Person"
+    },
+    {
+      "canonical_name": "袭人",
+      "aliases": [
+        "花珍珠",
+        "花大姐姐",
+        "花袭人"
+      ],
+      "type": "Person"
+    },
+    {
+      "canonical_name": "晴雯",
+      "aliases": [
+        "勇晴雯",
+        "芙蓉仙子"
+      ],
+      "type": "Person"
+    },
+    {
+      "canonical_name": "紫鹃",
+      "aliases": [
+        "鹦哥"
+      ],
+      "type": "Person"
+    },
+    {
+      "canonical_name": "贾惜春",
+      "aliases": [
+        "惜春",
+        "四姑娘",
+        "藕榭"
+      ],
+      "type": "Person"
+    },
+    {
+      "canonical_name": "贾探春",
+      "aliases": [
+        "探春",
+        "三姑娘",
+        "蕉下客"
+      ],
+      "type": "Person"
+    },
+    {
+      "canonical_name": "贾迎春",
+      "aliases": [
+        "迎春",
+        "二姑娘",
+        "菱洲"
+      ],
+      "type": "Person"
+    },
+    {
+      "canonical_name": "大观园",
+      "aliases": [
+        "省亲别墅",
+        "园子"
+      ],
+      "type": "Location"
+    },
+    {
+      "canonical_name": "潇湘馆",
+      "aliases": [
+        "有凤来仪",
+        "竹林馆舍"
+      ],
+      "type": "Location"
+    },
+    {
+      "canonical_name": "怡红院",
+      "aliases": [
+        "怡红快绿",
+        "绛芸轩"
+      ],
+      "type": "Location"
+    },
+    {
+      "canonical_name": "蘅芜苑",
+      "aliases": [
+        "蘅芷清芬"
+      ],
+      "type": "Location"
+    },
+    {
+      "canonical_name": "荣禧堂",
+      "aliases": [
+        "正堂",
+        "荣国堂"
+      ],
+      "type": "Location"
+    },
+    {
+      "canonical_name": "通灵宝玉",
+      "aliases": [
+        "命根子",
+        "神瑛玉",
+        "顽石"
+      ],
+      "type": "Artifact"
+    }
+  ]
+}

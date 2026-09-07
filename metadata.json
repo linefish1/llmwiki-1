@@ -1,0 +1,8 @@
+{
+  "name": "Remix LLM Wiki 个人知识库",
+  "description": "全自动自主演进 LLM Wiki 个人知识库系统，具备原生 Markdown/Mermaid 渲染、多模态解构、智能路由与自愈巡检。",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
