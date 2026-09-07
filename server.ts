@@ -20,6 +20,14 @@ import {
   refreshWikiIndex,
 } from "./server/aiPipeline.js";
 import { enrichmentRouter } from "./server/enrichmentRoutes.js";
+import {
+  loadCurrentConfig,
+  saveCurrentConfig,
+  testModelConnection,
+  inspectPayload,
+  completeWithDualEngine,
+  serializeConfigToml,
+} from "./server/smartRouter.js";
 
 async function startServer() {
   const app = express();
@@ -154,6 +162,83 @@ async function startServer() {
       res.json({ success: true, message: "AI 协议与模型调度配置已即时更新生效！" });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
+    }
+  });
+
+  // 9.1 Dual-Engine Router Configuration & Testing APIs
+  app.get("/api/router/config", (req, res) => {
+    try {
+      const config = loadCurrentConfig();
+      const rawToml = serializeConfigToml(config);
+      res.json({ success: true, config, rawToml });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  app.post("/api/router/config", (req, res) => {
+    try {
+      const { config, rawToml } = req.body;
+      if (config) {
+        saveCurrentConfig(config);
+      } else if (rawToml) {
+        writeWikiFile("config.toml", rawToml);
+      }
+      const updated = loadCurrentConfig();
+      res.json({
+        success: true,
+        message: "全局模型与双引擎调度配置已成功保存并热重载生效！",
+        config: updated,
+        rawToml: serializeConfigToml(updated),
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  app.post("/api/router/test-connection", async (req, res) => {
+    try {
+      const { engineType, config } = req.body;
+      const targetType = engineType === "multimodal_llm" ? "multimodal_llm" : "global_llm";
+      const result = await testModelConnection(targetType, config);
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({
+        success: false,
+        latencyMs: 0,
+        status: "ERROR",
+        message: err.message || "测试连接失败",
+        provider: req.body?.config?.provider || "unknown",
+        model: req.body?.config?.model_name || "unknown",
+        timestamp: new Date().toLocaleTimeString(),
+      });
+    }
+  });
+
+  app.post("/api/router/detect", (req, res) => {
+    try {
+      const { text, images, config } = req.body;
+      const result = inspectPayload(text || "", images, config);
+      res.json({ success: true, ...result });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  app.post("/api/router/complete", async (req, res) => {
+    try {
+      const { prompt, systemPrompt, text, images, docTitle, json } = req.body;
+      const result = await completeWithDualEngine({
+        prompt: prompt || text || "",
+        systemPrompt,
+        text,
+        images,
+        docTitle,
+        json,
+      });
+      res.json({ success: true, ...result });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
     }
   });
 

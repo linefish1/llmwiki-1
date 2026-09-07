@@ -80,6 +80,7 @@ export const IngestUpload: React.FC<IngestUploadProps> = ({
           title: "资料入库与增量编译完成 (Ingest & Synthesis Complete)",
           description: data.message,
           details: [
+            `调度引擎：${data.engineUsed || (data.imagesExtracted > 0 ? "👁️ 多模态大模型 (视觉解构)" : "💬 全局通用大模型 (纯文本轻量)")}`,
             `归档源文件：${data.outputPath}`,
             `提取并本地化图片：${data.imagesExtracted || 0} 张`,
             `衍生结构化实体：${(data.entitiesCreated || []).join(", ") || "已挂载至全局索引"}`,

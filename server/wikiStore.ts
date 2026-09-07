@@ -73,43 +73,53 @@ export function initWorkspace() {
   if (!fs.existsSync(configTomlPath)) {
     fs.writeFileSync(
       configTomlPath,
-      `# LLM Wiki Multi-Model Configuration
-# 存储 API Keys、模型路由与巡检频率
+      `# config.toml - 全局大模型驱动配置文件
 
+[system]
+auto_switch_multimodal = true    # 是否在检测到图像时自动切换至多模态引擎
+
+# ==========================================
+# 1. 全局通用大模型 (日常系统驱动/摘要/实体融合/巡检)
+# ==========================================
+[global_llm]
+provider = "deepseek"             # 提供商: deepseek | openai | anthropic | gemini | ollama | custom
+model_name = "deepseek-chat"      # 模型名称
+api_key = "sk-xxxxxxxxxxxxxxxx"
+base_url = "https://api.deepseek.com/v1"
+temperature = 0.3
+max_tokens = 4096
+timeout = 30                      # 秒
+
+# 备用降级模型 (主模型宕机/超额时自动切入)
+fallback_provider = "ollama"
+fallback_model = "qwen2.5:14b"
+fallback_base_url = "http://localhost:11434"
+
+# ==========================================
+# 2. 多模态大模型 (图像解构/架构图识别/OCR/图表绘制)
+# ==========================================
+[multimodal_llm]
+provider = "anthropic"            # 提供商: anthropic | openai | gemini | qwen-vl | ollama
+model_name = "claude-3-7-sonnet-20250219"
+api_key = "sk-ant-xxxxxxxxxxxx"
+base_url = "https://api.anthropic.com"
+temperature = 0.2
+max_tokens = 4096
+timeout = 60                      # 视觉处理给予更长超时时间
+
+# 本地/备用多模态降级模型
+fallback_provider = "ollama"
+fallback_model = "qwen2.5-vl:7b"
+fallback_base_url = "http://localhost:11434"
+
+# ==========================================
+# 3. 系统通用参数
+# ==========================================
 [general]
 workspace_path = "D:\\\\PersonalWiki"
 version = "1.0.0"
 auto_heal_interval_hours = 24
 last_lint_timestamp = "2026-09-07T02:00:00Z"
-
-[engines.triage]
-# 快速预处理 & Diff 路由 (追求极速/低成本)
-provider = "deepseek"
-model = "deepseek-chat"
-api_key = "sk-deepseek-default-placeholder"
-fallback_provider = "gemini"
-fallback_model = "gemini-3.8-flash"
-
-[engines.vision]
-# 图像/架构图解构 (必须支持 Vision)
-provider = "gemini"
-model = "gemini-3.8-flash"
-fallback_provider = "local_ollama"
-fallback_model = "qwen2.5-vl:7b"
-
-[engines.synthesis]
-# 深度编译与实体融合 (强 Markdown & 上下文)
-provider = "gemini"
-model = "gemini-3.8-flash"
-fallback_provider = "anthropic"
-fallback_model = "claude-3-7-sonnet-20250219"
-
-[engines.lint]
-# 全库逻辑巡检 (强 Reasoning 思考链)
-provider = "gemini"
-model = "gemini-3.8-flash"
-fallback_provider = "deepseek"
-fallback_model = "deepseek-reasoner"
 `,
       "utf-8"
     );

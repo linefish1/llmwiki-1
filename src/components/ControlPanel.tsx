@@ -11,8 +11,10 @@ import {
   Layers,
   FileCode,
   CheckCircle2,
+  Zap,
 } from "lucide-react";
 import { LintResult } from "../types";
+import { ModelDriverCenter } from "./ModelDriverCenter";
 
 interface ControlPanelProps {
   onLintTriggered: () => void;
@@ -80,34 +82,36 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ onLintTriggered }) =
           <div className="flex items-center gap-2 mb-1">
             <span className="w-2 h-2 rounded-full bg-[#818CF8]"></span>
             <h2 className="text-sm font-bold text-white font-mono uppercase tracking-wider">
-              AI PROTOCOL SETTINGS & MULTI-MODEL ROUTER
+              AI PROTOCOL SETTINGS & DUAL-ENGINE DRIVER
             </h2>
             <span className="high-density-token font-mono text-[10px]">
               HUMAN BOUNDARY #5
             </span>
           </div>
           <p className="text-xs text-[#94A3B8]">
-            配置多模型分工调度路由、逻辑巡检频率与 AI 编译规范。修改即时更新底层 <code className="text-[#818CF8] font-mono">config.toml</code> 与 <code className="text-[#818CF8] font-mono">schema/AGENTS.md</code>。
+            配置全局通用大模型与多模态双引擎智能调度、逻辑巡检频率与 AI 编译规范。修改即时更新底层 <code className="text-[#818CF8] font-mono">config.toml</code> 与 <code className="text-[#818CF8] font-mono">schema/AGENTS.md</code>。
           </p>
         </div>
 
-        <button
-          onClick={handleSave}
-          disabled={isSaving}
-          className="px-3.5 py-1.5 rounded text-xs font-mono font-medium bg-[#4F46E5] text-white hover:bg-[#4338CA] border border-[#4F46E5] flex items-center gap-1.5 cursor-pointer shadow-xs transition"
-        >
-          {savedSuccess ? (
-            <>
-              <Check className="w-3.5 h-3.5 text-[#4ADE80]" />
-              <span>SAVED SUCCESS</span>
-            </>
-          ) : (
-            <>
-              <Save className="w-3.5 h-3.5" />
-              <span>{isSaving ? "SAVING..." : "SAVE CONFIG"}</span>
-            </>
-          )}
-        </button>
+        {activeSubTab !== "router" && (
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="px-3.5 py-1.5 rounded text-xs font-mono font-medium bg-[#4F46E5] text-white hover:bg-[#4338CA] border border-[#4F46E5] flex items-center gap-1.5 cursor-pointer shadow-xs transition"
+          >
+            {savedSuccess ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-[#4ADE80]" />
+                <span>SAVED SUCCESS</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-3.5 h-3.5" />
+                <span>{isSaving ? "SAVING..." : "SAVE PROTOCOL"}</span>
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {/* Tabs */}
@@ -120,8 +124,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ onLintTriggered }) =
               : "border-transparent text-[#94A3B8] hover:text-white"
           }`}
         >
-          <Cpu className="w-4 h-4" />
-          <span>ROUTER (config.toml)</span>
+          <Zap className="w-4 h-4 text-[#818CF8]" />
+          <span>大模型驱动中心 (MODEL DRIVER CENTER)</span>
         </button>
         <button
           onClick={() => setActiveSubTab("agents")}
@@ -147,54 +151,18 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ onLintTriggered }) =
         </button>
       </div>
 
-      {/* Tab 1: Multi-Model Router (config.toml) */}
+      {/* Tab 1: Dual-Engine Model Driver Center */}
       {activeSubTab === "router" && (
-        <div className="space-y-4">
-          {/* Quick Engine Status Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs font-mono">
-            <div className="p-3 bg-[#141418] rounded-lg border border-[#2D2D33]">
-              <span className="text-[10px] text-[#94A3B8] block mb-1">
-                TRIAGE (快速预处理)
-              </span>
-              <div className="font-bold text-white text-xs">DeepSeek Chat</div>
-              <div className="text-[10px] text-[#818CF8] mt-1">Fallback: Gemini 3.8 Flash</div>
-            </div>
-            <div className="p-3 bg-[#141418] rounded-lg border border-[#2D2D33]">
-              <span className="text-[10px] text-[#94A3B8] block mb-1">
-                VISION (多模态视觉)
-              </span>
-              <div className="font-bold text-[#818CF8] text-xs">Gemini 3.8 Flash</div>
-              <div className="text-[10px] text-slate-400 mt-1">Local: Qwen2.5-VL:7b</div>
-            </div>
-            <div className="p-3 bg-[#141418] rounded-lg border border-[#2D2D33]">
-              <span className="text-[10px] text-[#94A3B8] block mb-1">
-                SYNTHESIS (深度融合)
-              </span>
-              <div className="font-bold text-white text-xs">Claude 3.7 / Gemini</div>
-              <div className="text-[10px] text-slate-400 mt-1">Full-Context Compiling</div>
-            </div>
-            <div className="p-3 bg-[#141418] rounded-lg border border-[#2D2D33]">
-              <span className="text-[10px] text-[#94A3B8] block mb-1">
-                LINT (逻辑巡检)
-              </span>
-              <div className="font-bold text-[#4ADE80] text-xs">DeepSeek R1 / Gemini</div>
-              <div className="text-[10px] text-[#94A3B8] mt-1">Dead-link & Gap Healing</div>
-            </div>
-          </div>
-
-          <div className="bg-[#141418] rounded-lg border border-[#2D2D33] overflow-hidden">
-            <div className="bg-[#1A1A20] px-3 py-2 border-b border-[#2D2D33] text-xs font-mono text-[#94A3B8] flex items-center justify-between">
-              <span className="text-white font-semibold">config.toml</span>
-              <span className="text-[11px] text-[#818CF8]">TOML Specification v1.0</span>
-            </div>
-            <textarea
-              value={configToml}
-              onChange={(e) => setConfigToml(e.target.value)}
-              className="w-full h-80 p-4 font-mono text-xs text-slate-200 outline-none leading-relaxed resize-y bg-[#0A0A0C]"
-              spellCheck={false}
-            />
-          </div>
-        </div>
+        <ModelDriverCenter
+          onConfigSaved={() => {
+            // refresh config
+            fetch("/api/config")
+              .then((r) => r.json())
+              .then((data) => {
+                if (data.configToml) setConfigToml(data.configToml);
+              });
+          }}
+        />
       )}
 
       {/* Tab 2: AGENTS.md Protocol */}

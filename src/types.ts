@@ -65,3 +65,57 @@ export type MainTab =
   | "mcp"
   | "timeline"
   | "enrichment";
+
+export interface EngineConfig {
+  provider: string; // "deepseek" | "openai" | "anthropic" | "gemini" | "ollama" | "qwen" | "custom"
+  model_name: string;
+  api_key: string;
+  base_url: string;
+  temperature: number;
+  max_tokens: number;
+  timeout: number;
+  fallback_provider: string;
+  fallback_model: string;
+  fallback_base_url: string;
+}
+
+export interface SystemConfig {
+  auto_switch_multimodal: boolean;
+}
+
+export interface WikiTomlConfig {
+  system: SystemConfig;
+  global_llm: EngineConfig;
+  multimodal_llm: EngineConfig;
+  general?: {
+    workspace_path?: string;
+    version?: string;
+    auto_heal_interval_hours?: number;
+    last_lint_timestamp?: string;
+  };
+}
+
+export interface ConnectionTestResult {
+  success: boolean;
+  latencyMs: number;
+  status: string;
+  message: string;
+  provider: string;
+  model: string;
+  timestamp: string;
+}
+
+export interface PayloadInspectionResult {
+  hasImage: boolean;
+  detectedImages: Array<{
+    type: "markdown" | "base64" | "asset";
+    reference: string;
+  }>;
+  autoSwitchActive: boolean;
+  targetEngine: "global_llm" | "multimodal_llm";
+  targetEngineName: string;
+  targetModel: string;
+  targetProvider: string;
+  reason: string;
+  costEfficiencyRatio: string;
+}

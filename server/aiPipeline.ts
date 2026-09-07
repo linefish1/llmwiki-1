@@ -2,6 +2,10 @@ import fs from "fs";
 import path from "path";
 import { getGemini, generateTextWithFallback } from "./gemini.js";
 import {
+  completeWithDualEngine,
+  hasImagePayload,
+} from "./smartRouter.js";
+import {
   WORKSPACE_ROOT,
   ensureDirectory,
   appendToShturl,
@@ -31,6 +35,8 @@ export async function processIngressFile(
   outputPath?: string;
   entitiesCreated?: string[];
   imagesExtracted?: number;
+  isVisual?: boolean;
+  engineUsed?: string;
 }> {
   const isMd = fileName.toLowerCase().endsWith(".md");
 
@@ -86,12 +92,16 @@ export async function processIngressFile(
   const archivePath = path.join(WORKSPACE_ROOT, "raw/archive", `${cleanBaseName}.md`);
   fs.writeFileSync(archivePath, textContent, "utf-8");
 
-  // 3. Multi-modal Deconstruction & Synthesis via Gemini
+  // 3. Multi-modal Deconstruction & Synthesis via Dual-Engine Router
+  const inspection = hasImagePayload(textContent);
+  const isVisual = inspection.hasImage || imagesExtracted > 0;
+  const engineUsed = isVisual ? "👁️ 多模态大模型 (Multimodal LLM)" : "💬 全局通用大模型 (Global LLM)";
+
   const entitiesCreated = await compileDocument(cleanBaseName, textContent);
 
   appendToShturl(
     "Ingest & Autonomous Compile",
-    `- **入库文件**：\`raw/archive/${cleanBaseName}.md\`\n- **提取图片**：${imagesExtracted} 张\n- **生成/更新实体**：${entitiesCreated.map((e) => `[[${e}]]`).join(", ")}\n- **状态**：编译成功并已刷新索引`
+    `- **入库文件**：\`raw/archive/${cleanBaseName}.md\`\n- **调度引擎**：${engineUsed}\n- **提取图片**：${imagesExtracted} 张\n- **生成/更新实体**：${entitiesCreated.map((e) => `[[${e}]]`).join(", ")}\n- **状态**：编译成功并已刷新索引`
   );
 
   return {
@@ -101,16 +111,20 @@ export async function processIngressFile(
     outputPath: `raw/archive/${cleanBaseName}.md`,
     entitiesCreated,
     imagesExtracted,
+    isVisual,
+    engineUsed,
   };
 }
 
 /**
- * Compile a raw document into source summary and entities
+ * Compile a raw document into source summary and entities using Dual-Engine Router
  */
 export async function compileDocument(docTitle: string, markdown: string): Promise<string[]> {
-  const gemini = getGemini();
+  const imageInspection = hasImagePayload(markdown);
+  const isVisual = imageInspection.hasImage;
 
   let summaryText = "";
+  let visualDeconstructionBlock = "";
   let extractedEntities: Array<{
     name: string;
     type: string;
@@ -119,18 +133,19 @@ export async function compileDocument(docTitle: string, markdown: string): Promi
     mermaid?: string;
   }> = [];
 
-  if (gemini) {
-    try {
-      const prompt = `你是一个运行在 Windows 环境下的高智能 LLM Wiki 知识编译器。
-任务：请分析以下用户投递的 Markdown 知识文档，执行多模态解构与实体增量融合编译。
+  try {
+    const prompt = `你是一个运行在 Windows 环境下的高智能 LLM Wiki 知识编译器。
+任务：请分析以下用户投递的 Markdown 知识文档，执行${isVisual ? "【多模态视觉解构 + 架构图提炼 + 实体增量融合】" : "【全局通用文本提炼 + 实体增量融合】"}编译。
 
 文档标题：${docTitle}
+视觉载荷检测：${isVisual ? `发现 ${imageInspection.detectedImages.length} 处图像/图示信号` : "纯文本结构"}
 文档内容：
 ${markdown}
 
 请输出严格的 JSON 格式对象（不要包裹 markdown \`\`\`json 标记，只输出纯 JSON）：
 {
   "summary": "150字以内的结构化核心摘要",
+  "visualDeconstruction": "${isVisual ? "对图文中图像/架构图/时序图的专业视觉语义解析与解读 (150字左右)" : ""}",
   "keyTakeaways": ["核心要点1", "核心要点2", "核心要点3"],
   "entities": [
     {
@@ -138,36 +153,42 @@ ${markdown}
       "type": "实体类型 (如 硬件产品/光学器件/结构工艺/显示器件)",
       "definition": "对该实体的深度阐述与工作原理 (200字左右)，在提到相关技术或概念时必须使用 [[双链]] 语法",
       "tags": ["标签1", "标签2"],
-      "mermaid": "可选的 Mermaid 代码 (如 graph LR 或 flowchart TD，无需包裹代码块符号)"
+      "mermaid": "针对该实体或架构生成的 Mermaid 代码 (如 graph LR 或 flowchart TD，无需包裹代码块符号)"
     }
   ]
 }`;
 
-      const res = await generateTextWithFallback({
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json",
-          temperature: 0.2,
-        },
-      });
+    const dispatchResult = await completeWithDualEngine({
+      prompt,
+      systemPrompt: "你是一个专业的知识图谱编译器，专注于纯净 JSON 输出与精准实体提炼。",
+      text: markdown,
+      docTitle,
+      json: true,
+    });
 
-      if (res && res.text) {
-        let jsonStr = res.text.trim();
-        if (jsonStr.startsWith("```json")) {
-          jsonStr = jsonStr.replace(/^```json\s*/, "").replace(/\s*```$/, "");
-        } else if (jsonStr.startsWith("```")) {
-          jsonStr = jsonStr.replace(/^```\s*/, "").replace(/\s*```$/, "");
-        }
+    if (dispatchResult && dispatchResult.text) {
+      let jsonStr = dispatchResult.text.trim();
+      if (jsonStr.startsWith("```json")) {
+        jsonStr = jsonStr.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+      } else if (jsonStr.startsWith("```")) {
+        jsonStr = jsonStr.replace(/^```\s*/, "").replace(/\s*```$/, "");
+      }
 
+      try {
         const parsed = JSON.parse(jsonStr.trim());
         summaryText = parsed.summary || "";
+        if (parsed.visualDeconstruction && isVisual) {
+          visualDeconstructionBlock = parsed.visualDeconstruction;
+        }
         if (parsed.entities && Array.isArray(parsed.entities)) {
           extractedEntities = parsed.entities;
         }
+      } catch (jsonErr) {
+        console.warn("[Router] JSON 解析微瑕，启用备用实体识别:", jsonErr);
       }
-    } catch {
-      // Graceful fallback to rule-based indexing without throwing raw unhandled exceptions
     }
+  } catch (err: any) {
+    console.warn("[Router] 编译调度捕获异常，切入本地规则引擎:", err?.message);
   }
 
   // Fallback if AI not configured or failed
@@ -195,12 +216,19 @@ ${markdown}
 
   // Write Source Summary
   const summaryFilePath = path.join(WORKSPACE_ROOT, `wiki/source_summaries/${docTitle}.md`);
+  const visualSection =
+    isVisual && visualDeconstructionBlock
+      ? `\n<details open>\n<summary><b>🔍 AI 图像视觉语义解构 (多模态驱动)</b></summary>\n\n> **视觉理解结论**：${visualDeconstructionBlock}\n\n</details>\n`
+      : "";
+
   const summaryContent = `# 来源摘要：${docTitle}
 
 - **原始文件**：\`raw/archive/${docTitle}.md\`
 - **编译时间**：${new Date().toLocaleString()}
+- **双引擎调度**：${isVisual ? "👁️ 多模态大模型 (含视觉图像解析)" : "💬 全局通用大模型 (纯文本极速)"}
+${visualSection}
 - **核心要点**：
-${markdown
+${summaryText ? `  - ${summaryText}\n` : ""}${markdown
   .split("\n")
   .filter((l) => l.trim().startsWith("- ") || l.trim().startsWith("## "))
   .slice(0, 5)
